@@ -116,7 +116,9 @@ button { padding: 8px 16px; margin: 5px 0; cursor: pointer; }
         {% endfor %}
     </select>
 </form>
-
+<form action="/delete/{{f}}" method="post">
+    <button class="delbtn" type="submit">Delete</button>
+</form>
 <!-- Delete Category Button -->
 {% if selected_category != "default" %}
 <form method="post" action="/delete_category" style="display:inline-block; margin-left:10px;">
