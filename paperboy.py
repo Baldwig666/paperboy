@@ -10,9 +10,9 @@ import json
 
 app = Flask(__name__)
 
-UPLOAD_FOLDER = "/bin/paperboy/uploads"
-THUMB_FOLDER = "/bin/paperboy/uploads/thumbs"
-CATEGORY_FILE = "/bin/paperboy/categories.json"
+UPLOAD_FOLDER = "/usr/locl/bin/paperboy/uploads"
+THUMB_FOLDER = "/usr/locl/bin/paperboy/uploads/thumbs"
+CATEGORY_FILE = "/usr/locl/bin/paperboy/categories.json"
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(THUMB_FOLDER, exist_ok=True)
