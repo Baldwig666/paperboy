@@ -10,9 +10,9 @@ import json
 
 app = Flask(__name__)
 
-UPLOAD_FOLDER = "/usr/locl/bin/paperboy/uploads"
-THUMB_FOLDER = "/usr/locl/bin/paperboy/uploads/thumbs"
-CATEGORY_FILE = "/usr/locl/bin/paperboy/categories.json"
+UPLOAD_FOLDER = "/usr/local/bin/paperboy/uploads"
+THUMB_FOLDER = "/usr/local/bin/paperboy/uploads/thumbs"
+CATEGORY_FILE = "/usr/local/bin/paperboy/categories.json"
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(THUMB_FOLDER, exist_ok=True)
@@ -116,9 +116,6 @@ button { padding: 8px 16px; margin: 5px 0; cursor: pointer; }
         {% endfor %}
     </select>
 </form>
-<form action="/delete/{{f}}" method="post">
-    <button class="delbtn" type="submit">Delete</button>
-</form>
 <!-- Delete Category Button -->
 {% if selected_category != "default" %}
 <form method="post" action="/delete_category" style="display:inline-block; margin-left:10px;">
@@ -138,6 +135,11 @@ button { padding: 8px 16px; margin: 5px 0; cursor: pointer; }
     <a href="/show/{{img}}">
       <img class="thumb" src="/thumb/{{img}}">
     </a>
+
+    <form action="/delete/{{img}}"  method="post">
+        <button class="delbtn" type="submit">Delete</button>
+    </form>
+
 
     <form method="post" action="/set_category">
         <input type="hidden" name="image" value="{{img}}">
