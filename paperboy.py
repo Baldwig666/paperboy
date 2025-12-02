@@ -58,7 +58,7 @@ HTML = """
 <title>E-Paper Frame</title>
 <style>
 body { font-family: Arial; margin: 40px; max-width: 900px; }
-button { padding: 8px 16px; margin: 5px 0; cursor: pointer; }
+button { padding: 8px 16px; margin: 5px 3px; cursor: pointer; }
 .thumb {
     width: 150px;
     border: 2px solid #ccc;
@@ -67,12 +67,29 @@ button { padding: 8px 16px; margin: 5px 0; cursor: pointer; }
 .thumb:hover { border-color: #000; }
 .gallery { display: flex; flex-wrap: wrap; }
 .item { margin: 10px; text-align: center; }
+
+.viewbtn {
+    background: #5bc0de;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+}
+.showbtn {
+    background: #0275d8;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+}
 .delbtn {
     background: #d9534f;
     color: white;
     border: none;
     padding: 5px 10px;
-    margin-top: 5px;
+}
+.btn-row {
+  display: flex;
+  gap: 10px;   /* space between buttons */
+  align-items: center;
 }
 </style>
 </head>
@@ -132,14 +149,18 @@ button { padding: 8px 16px; margin: 5px 0; cursor: pointer; }
 {% for img in filtered %}
 <div class="item">
 
-    <a href="/show/{{img}}">
+    <a href="/view/{{img}}" target="_self">
       <img class="thumb" src="/thumb/{{img}}">
     </a>
 
-    <form action="/delete/{{img}}"  method="post">
-        <button class="delbtn" type="submit">Delete</button>
-    </form>
-
+    <div class="btn-row">
+      <a href="/show/{{img}}">
+        <button class="viewbtn" type="button">set image</button>
+      </a>
+      <form action="/delete/{{img}}"  method="post">
+          <button class="delbtn" type="submit">Delete</button>
+      </form>
+    </div>
 
     <form method="post" action="/set_category">
         <input type="hidden" name="image" value="{{img}}">
@@ -222,6 +243,10 @@ def upload():
 #    img = convert_for_spectra6(path)
 
     return redirect("/")
+
+@app.route("/view/<name>")
+def view(name):
+    return send_from_directory(UPLOAD_FOLDER, name)
 
 @app.route("/show/<name>")
 def show(name):
