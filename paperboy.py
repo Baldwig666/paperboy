@@ -43,6 +43,7 @@ def convert_for_spectra6(path):
     epd = epd13in3E.EPD()
     img = Image.open(path).convert("RGB")
     img = img.resize((epd.width, epd.height))
+    img.save(path)
     return img
 
 def make_thumbnail(path, filename):
@@ -101,11 +102,6 @@ button { padding: 8px 16px; margin: 5px 3px; cursor: pointer; }
   <button type="submit">Upload image</button>
 </form>
 
-<form action="/uploadad" method="post" enctype="multipart/form-data">
-  <input type="file" name="file" required>
-  <button type="submit">Upload & Display image</button>
-</form>
-
 <form action="/clear" method="post">
   <button type="submit" style="background: #d9534f; color: white;">Clear Display</button>
 </form>
@@ -157,7 +153,7 @@ button { padding: 8px 16px; margin: 5px 3px; cursor: pointer; }
       <a href="/show/{{img}}">
         <button class="viewbtn" type="button">set image</button>
       </a>
-      <form action="/delete/{{img}}"  method="post">
+      <form action="/delete/{{img}}"  method="post" onsubmit="return confirm('Really delete image?');">
           <button class="delbtn" type="submit">Delete</button>
       </form>
     </div>
@@ -214,34 +210,14 @@ def shutdown():
     subprocess.call(["sudo", "shutdown", "-h", "now"])
     return "Shutting down..."
 
-@app.route("/uploadad", methods=["POST"])
-def uploadad():
-    f = request.files["file"]
-    filename = f.filename
-    path = os.path.join(UPLOAD_FOLDER, filename)
-    f.save(path)
-
-    make_thumbnail(path, filename)
-
-    img = convert_for_spectra6(path)
-    epd = get_epd()
-    epd.Init()
-    epd.Clear()
-    epd.display(epd.getbuffer(img))
-    epd.sleep()
-    return redirect("/")
-
 @app.route("/upload", methods=["POST"])
 def upload():
     f = request.files["file"]
     filename = f.filename
     path = os.path.join(UPLOAD_FOLDER, filename)
     f.save(path)
-
+    convert_for_spectra6(path)
     make_thumbnail(path, filename)
-
-#    img = convert_for_spectra6(path)
-
     return redirect("/")
 
 @app.route("/view/<name>")
@@ -252,7 +228,7 @@ def view(name):
 def show(name):
 
     path = os.path.join(UPLOAD_FOLDER, name)
-    img = convert_for_spectra6(path)
+    img = Image.open(path)
     epd = get_epd()
     epd.Init()
     epd.Clear()
