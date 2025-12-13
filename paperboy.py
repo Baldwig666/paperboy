@@ -42,9 +42,6 @@ def convert_for_spectra6(path):
 
     pal_image = Image.new("P", (1,1))
     pal_image.putpalette( (0,0,0,  255,255,255,  255,243,56,  191,0,0,  0,0,0,  100,64,255,  67,138,28) + (0,0,0)*249)
-#    pal_image.putpalette( (0,0,0,  255,255,255,  0,255,0,   0,0,255,  255,0,0,  255,255,0, 0,0,0) + (0,0,0)*249)
-#    pal_image.putpalette( (0,0,0,  255,255,255,  0,255,0,   0,0,255,  255,0,0,  255,255,0, 255,128,0) + (0,0,0)*249)
-#   pal_image.putpalette( (0,0,0,  255,255,255,  255,255,0,   255,0,0,  0,0,0,  0,0,255, 0,255,0) + (0,0,0)*249)
 
     epd = epd13in3E.EPD()
     img = Image.open(path).quantize(dither=Image.Dither.FLOYDSTEINBERG, palette=pal_image).convert('RGB')
@@ -187,8 +184,10 @@ def index():
     categories = load_categories()
 
     # all image filenames (no thumbnails)
-    images = [f for f in os.listdir(UPLOAD_FOLDER) if not f.endswith("thumbs")]
-
+    images = [
+        f for f in os.listdir(UPLOAD_FOLDER)
+        if os.path.isfile(os.path.join(UPLOAD_FOLDER, f))
+    ]
     # full list of categories
     all_cats = get_all_categories(categories)
 
@@ -240,7 +239,7 @@ def show(name):
     epd.Clear()
     epd.display(epd.getbuffer(img))
     epd.sleep()
-    return redirect("/")
+    return redirect(request.referrer or "/")
 
 @app.route("/delete/<name>", methods=["POST"])
 def delete(name):
@@ -252,7 +251,7 @@ def delete(name):
     if os.path.exists(thumb_path):
         os.remove(thumb_path)
 
-    return redirect("/")
+    return redirect(request.referrer or "/")
 
 @app.route("/set_category", methods=["POST"])
 def set_category():
@@ -269,7 +268,7 @@ def set_category():
         categories[image] = category
 
     save_categories(categories)
-    return redirect("/")
+    return redirect(request.referrer or "/")
 
 @app.route("/add_category", methods=["POST"])
 def add_category():
@@ -280,8 +279,7 @@ def add_category():
            uptime_seconds = float(f.readline().split()[0])
         cats[uptime_seconds] = newcat
         save_categories(cats)
-    return redirect("/")
-
+    return redirect(request.referrer or "/")
 
 @app.route("/delete_category", methods=["POST"])
 def delete_category():
@@ -301,13 +299,13 @@ def delete_category():
 
     save_categories(new_categories)
 
-    return redirect("/")
+    return redirect(request.referrer or "/")
 
 @app.route("/clear", methods=["POST"])
 def clear():
     epd = get_epd()
     epd.Clear()
-    return redirect("/")
+    return redirect(request.referrer or "/")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
