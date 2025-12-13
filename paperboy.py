@@ -40,9 +40,15 @@ def get_epd():
 
 def convert_for_spectra6(path):
 
+    pal_image = Image.new("P", (1,1))
+    pal_image.putpalette( (0,0,0,  255,255,255,  255,243,56,  191,0,0,  0,0,0,  100,64,255,  67,138,28) + (0,0,0)*249)
+#    pal_image.putpalette( (0,0,0,  255,255,255,  0,255,0,   0,0,255,  255,0,0,  255,255,0, 0,0,0) + (0,0,0)*249)
+#    pal_image.putpalette( (0,0,0,  255,255,255,  0,255,0,   0,0,255,  255,0,0,  255,255,0, 255,128,0) + (0,0,0)*249)
+#   pal_image.putpalette( (0,0,0,  255,255,255,  255,255,0,   255,0,0,  0,0,0,  0,0,255, 0,255,0) + (0,0,0)*249)
+
     epd = epd13in3E.EPD()
-    img = Image.open(path).convert("RGB")
-    img = img.resize((epd.width, epd.height))
+    img = Image.open(path).quantize(dither=Image.Dither.FLOYDSTEINBERG, palette=pal_image).convert('RGB')
+#    img = img.resize((epd.width, epd.height))
     img.save(path)
     return img
 
@@ -216,8 +222,8 @@ def upload():
     filename = f.filename
     path = os.path.join(UPLOAD_FOLDER, filename)
     f.save(path)
-    convert_for_spectra6(path)
     make_thumbnail(path, filename)
+    convert_for_spectra6(path)
     return redirect("/")
 
 @app.route("/view/<name>")
