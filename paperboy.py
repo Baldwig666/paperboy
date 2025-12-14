@@ -1,5 +1,5 @@
 from flask import Flask, render_template_string, request, redirect, send_from_directory
-from PIL import Image
+from PIL import Image, ImageOps
 import os
 
 # Waveshare driver
@@ -38,9 +38,37 @@ def get_epd():
     epd.Init()
     return epd
 
+def image_scale(path):
+    epd = epd13in3E.EPD()
+    image = Image.open(path)
+    img_width, img_height = image.size
+
+    epaper_width = epd.width
+    epaper_height = epd.height
+
+    # Computed scaling
+    scale_ratio = max(epaper_width / img_width, epaper_height / img_height)
+
+    # Calculate the size after scaling
+    resized_width = int(img_width * scale_ratio)
+    resized_height = int(img_height * scale_ratio)
+
+    # Resize image
+    output_image = image.resize((resized_width, resized_height))
+
+    # Create the target image and center the resized image
+    resized_image = Image.new('RGB', (epaper_width, epaper_height), (255, 255, 255))
+    left = (epaper_width - resized_width) // 2
+    top = (epaper_height - resized_height) // 2
+    resized_image.paste(output_image, (left, top))
+
+    resized_image.save(path, format="BMP")
+    return resized_image
+
 def convert_for_spectra6(path):
 
     pal_image = Image.new("P", (1,1))
+#    pal_image.putpalette( (0,0,0,  255,255,255,  255,243,56,  191,0,0,   100,64,255,  67,138,28) + (0,0,0)*249)
     pal_image.putpalette( (0,0,0,  255,255,255,  255,243,56,  191,0,0,  0,0,0,  100,64,255,  67,138,28) + (0,0,0)*249)
 
     epd = epd13in3E.EPD()
@@ -51,9 +79,13 @@ def convert_for_spectra6(path):
 
 def make_thumbnail(path, filename):
     thumb_path = os.path.join(THUMB_FOLDER, filename)
+
+    base, _ = os.path.splitext(thumb_path)
+    bmp_path= base + ".bmp"
     img = Image.open(path)
+
     img.thumbnail((150, 150))
-    img.save(thumb_path)
+    img.save(bmp_path, "BMP" )
 
 HTML = """
 <!DOCTYPE html>
@@ -220,9 +252,16 @@ def upload():
     f = request.files["file"]
     filename = f.filename
     path = os.path.join(UPLOAD_FOLDER, filename)
+    base, _ = os.path.splitext(path)    
+    bmp_path= base + ".bmp"
     f.save(path)
-    make_thumbnail(path, filename)
-    convert_for_spectra6(path)
+    img = Image.open(path)
+    img = img.convert("RGB")
+    img.save(bmp_path, "BMP")
+    os.remove(path)
+    image_scale(bmp_path)
+    make_thumbnail(bmp_path, filename)
+    convert_for_spectra6(bmp_path)
     return redirect("/")
 
 @app.route("/view/<name>")
