@@ -68,8 +68,10 @@ def image_scale(path):
 def convert_for_spectra6(path):
 
     pal_image = Image.new("P", (1,1))
-#    pal_image.putpalette( (0,0,0,  255,255,255,  255,243,56,  191,0,0,   100,64,255,  67,138,28) + (0,0,0)*249)
-    pal_image.putpalette( (0,0,0,  255,255,255,  255,243,56,  191,0,0,  0,0,0,  100,64,255,  67,138,28) + (0,0,0)*249)
+
+#                           black    white          Yelow       red        green        blue
+    pal_image.putpalette( (0,0,0,  255,255,255,  255,255,0,  255,0,0,   0,255,0,  0,0,255) + (0,0,0)*249)
+#    pal_image.putpalette( (0,0,0,  255,255,255,  255,243,56,  191,0,0,  100,64,255,  67,138,28) + (0,0,0)*249)
 
     epd = epd13in3E.EPD()
     img = Image.open(path).quantize(dither=Image.Dither.FLOYDSTEINBERG, palette=pal_image).convert('RGB')
