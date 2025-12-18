@@ -17,6 +17,7 @@ CATEGORY_FILE = "/usr/local/bin/paperboy/categories.json"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(THUMB_FOLDER, exist_ok=True)
 
+epd = epd13in3E.EPD()
 
 def load_categories():
     if not os.path.exists(CATEGORY_FILE):
@@ -33,13 +34,8 @@ def get_all_categories(catmap):
     cats.add("default")
     return sorted(list(cats))
 
-def get_epd():
-    epd = epd13in3E.EPD()
-    epd.Init()
-    return epd
 
 def image_scale(path):
-    epd = epd13in3E.EPD()
     image = Image.open(path)
     img_width, img_height = image.size
 
@@ -54,7 +50,7 @@ def image_scale(path):
     resized_height = int(img_height * scale_ratio)
 
     # Resize image
-    output_image = image.resize((resized_width, resized_height))
+    output_image = image.resize((resized_width, resized_height), Image.LANCZOS)
 
     # Create the target image and center the resized image
     resized_image = Image.new('RGB', (epaper_width, epaper_height), (255, 255, 255))
@@ -79,6 +75,7 @@ def convert_for_spectra6(path):
     img.save(path)
     return img
 
+
 def make_thumbnail(path, filename):
     thumb_path = os.path.join(THUMB_FOLDER, filename)
 
@@ -88,6 +85,7 @@ def make_thumbnail(path, filename):
 
     img.thumbnail((150, 150))
     img.save(bmp_path, "BMP" )
+
 
 HTML = """
 <!DOCTYPE html>
@@ -188,7 +186,7 @@ button { padding: 8px 16px; margin: 5px 3px; cursor: pointer; }
 
     <div class="btn-row">
       <a href="/show/{{img}}">
-        <button class="viewbtn" type="button">set image</button>
+        <button class="viewbtn" type="button">Show image</button>
       </a>
       <form action="/delete/{{img}}"  method="post" onsubmit="return confirm('Really delete image?');">
           <button class="delbtn" type="submit">Delete</button>
@@ -224,6 +222,8 @@ def index():
     ]
     # full list of categories
     all_cats = get_all_categories(categories)
+
+    images.sort()
 
     # filter images by selected category
     def image_category(img):
@@ -275,7 +275,6 @@ def show(name):
 
     path = os.path.join(UPLOAD_FOLDER, name)
     img = Image.open(path)
-    epd = get_epd()
     epd.Init()
     epd.Clear()
     epd.display(epd.getbuffer(img))
@@ -344,8 +343,8 @@ def delete_category():
 
 @app.route("/clear", methods=["POST"])
 def clear():
-    epd = get_epd()
     epd.Clear()
+    epd.sleep()
     return redirect(request.referrer or "/")
 
 if __name__ == "__main__":
