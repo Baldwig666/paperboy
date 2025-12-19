@@ -19,33 +19,6 @@ os.makedirs(THUMB_FOLDER, exist_ok=True)
 
 epd = epd13in3E.EPD()
 
-SPECTRA6_REAL_WORD_RGB = [
-    (25, 30, 33),
-    (232, 232, 232),
-    (239, 222, 68),
-    (178, 19, 24),
-    (33, 87, 186),
-    (18, 95, 32),
-]
-
-SPECTRA6_DEVICE_RGB = [
-    (0, 0, 0),  # BLACK
-    (255, 255, 255),  # WHITE
-    (255, 255, 0),  # YELLOW
-    (255, 0, 0),  # RED
-    (0, 0, 255),  # BLUE
-    (0, 255, 0),  # GREEN
-]
-
-SPECTRA6_DEVICE_INDEX_TO_RAW = [
-    0,
-    1,
-    2,
-    3,
-    5,
-    6,
-]
-
 def load_categories():
     if not os.path.exists(CATEGORY_FILE):
         return {}
@@ -92,42 +65,28 @@ def convert_for_spectra6(path, sel_palette):
 
     pal_image = Image.new("P", (1,1))
 
-    palette = (
-        tuple(v for rgb in SPECTRA6_REAL_WORD_RGB for v in rgb)
-        + SPECTRA6_REAL_WORD_RGB[0] * 250
-    )
-    
-    pal_image.putpalette(palette)
-
-    img = Image.open(path).quantize(dither=Image.Dither.FLOYDSTEINBERG, palette=pal_image).convert('RGB')
-
     if sel_palette:
 
-        raw_bytes = bytearray()
-        raw_pending = 0
-        pixels = img.load()
-        for y in reversed(range(img.height)):
-            for x in reversed(range(img.width)):
-                r, g, b = pixels[x, y]
-                index = SPECTRA6_REAL_WORD_RGB.index((r, g, b))
-                pixels[x, y] = SPECTRA6_DEVICE_RGB[index]
-                raw_value = SPECTRA6_DEVICE_INDEX_TO_RAW[index]
-                assert raw_value < 8
-                if (x & 1) == 0:
-                    raw_pending = raw_value
-                else:
-                    raw_bytes.append((raw_pending << 4) | raw_value)
+#                           black    white          Yelow       red        green        blue
+        pal_image.putpalette( (0,0,0,  255,255,255,  255,255,0,  255,0,0,   0,255,0,  0,0,255) + (0,0,0)*249)
 
+    else:
+
+        pal_image.putpalette( (25,30,33,  232,232,232,  239,222,68,  178,19,24,  33,87,186,  18,95,32) + (0,0,0)*249)
+
+    epd = epd13in3E.EPD()
+    img = Image.open(path).quantize(dither=Image.Dither.FLOYDSTEINBERG, palette=pal_image).convert('RGB')
     img.save(path)
     return img
 
 
-def make_thumbnail(path):
+def make_thumbnail(path, filename):
+    thumb_path = os.path.join(THUMB_FOLDER, filename)
 
-    thumb_path = os.path.join(THUMB_FOLDER, os.path.basename(path).split('/')[-1])
     base, _ = os.path.splitext(thumb_path)
     bmp_path= base + ".bmp"
     img = Image.open(path)
+
     img.thumbnail((150, 150))
     img.save(bmp_path, "BMP" )
 
@@ -177,46 +136,22 @@ button { padding: 8px 16px; margin: 5px 3px; cursor: pointer; }
 <body>
 <h2>E-Paper Picture Frame</h2>
 
-<fieldset>
-  <legend>Upload file</legend>
+<form action="/upload" method="post" enctype="multipart/form-data">
+  <input type="file" name="file" required>
+  <button type="submit">Upload image</button>
+</form>
 
-    <form action="/upload" method="post" enctype="multipart/form-data">
-      <input type="file" name="file" required accept=".png,.jpg,.jpeg">  <br> <br>
+<form action="/clear" method="post">
+  <button type="submit" style="background: #d9534f; color: white;">Clear Display</button>
+</form>
 
-      <label>
-        <input type="radio" name="palette" value="default">
-          Default palette
-      </label><br>
-
-      <label>
-        <input type="radio" name="palette" value="spectra6" checked>
-        Spectra 6 device palette
-      </label><br><br>
-
-      <button type="submit">Upload image</button><br><br>
-
-    </form>
-</fieldset>
-
-<fieldset>
-
-  <div class="btn-row">
-    <form action="/clear" method="post">
-      <button type="submit" style="background: #d9534f; color: white;">Clear Display</button>
-    </form>
-
-    <form action="/shutdown" method="post" onsubmit="return confirm('Really shut down the Raspberry Pi?');">
-      <button type="submit" style="background:red;color:white;padding:10px;border:none;border-radius:5px;">
+<form action="/shutdown" method="post" onsubmit="return confirm('Really shut down the Raspberry Pi?');">
+    <button type="submit" style="background:red;color:white;padding:10px;border:none;border-radius:5px;">
         Shutdown Raspberry Pi
-      </button>
-    </form>
-  </div>
+    </button>
+</form>
 
-</fieldset>
-
-<br>
-
-<fieldset>
+<hr>
 
 <h2>Gallery</h2>
 
@@ -274,8 +209,6 @@ button { padding: 8px 16px; margin: 5px 3px; cursor: pointer; }
 {% endfor %}
 </div>
 
-</fieldset>
-
 </body>
 </html>
 """
@@ -322,35 +255,23 @@ def shutdown():
 
 @app.route("/upload", methods=["POST"])
 def upload():
-    print("1")
     f = request.files["file"]
-    print("got file")
-
-    dither_method = request.form["palette"]
-    print("got palette")
-
     filename = f.filename
     path = os.path.join(UPLOAD_FOLDER, filename)
     base, _ = os.path.splitext(path)    
     bmp_path= base + ".bmp"
-    pal_path= base + "-dev.bmp"
     f.save(path)
-
-    if dither_method == "spectra6":
-        dpal_enabled = True
-    else:
-        dpal_enabled = False
-
     img = Image.open(path)
+    img = img.convert("RGB")
     img.save(bmp_path, "BMP")
-#    img.save(pal_path, "BMP")
+    pal_path= base + "-dev.bmp"
+    img.save(pal_path, "BMP")
     os.remove(path)
     image_scale(bmp_path)
-#    image_scale(pal_path)
-    make_thumbnail(bmp_path)
-#    make_thumbnail(pal_path)
-    convert_for_spectra6(bmp_path, dpal_enabled)
-#    convert_for_spectra6(pal_path, True)
+    make_thumbnail(bmp_path, filename)
+    make_thumbnail(pal_path, filename)
+    convert_for_spectra6(bmp_path, True)
+    convert_for_spectra6(pal_path, False)
     return redirect("/")
 
 @app.route("/view/<name>")
