@@ -88,6 +88,7 @@ def image_scale(path):
     resized_image.save(path, format="BMP")
     return resized_image
 
+
 def convert_for_spectra6(path, sel_palette):
 
     pal_image = Image.new("P", (1,1))
@@ -99,26 +100,20 @@ def convert_for_spectra6(path, sel_palette):
     
     pal_image.putpalette(palette)
 
-    img = Image.open(path).quantize(dither=Image.Dither.FLOYDSTEINBERG, palette=pal_image).convert('RGB')
+    img = Image.open(path).quantize(dither=Image.Dither.FLOYDSTEINBERG, palette=pal_image)
 
     if sel_palette:
+        # Build a new device palette
+        device_palette = (
+            tuple(v for rgb in SPECTRA6_DEVICE_RGB for v in rgb)
+            + (0, 0, 0) * 250
+        )
+        img.putpalette(device_palette)
 
-        raw_bytes = bytearray()
-        raw_pending = 0
-        pixels = img.load()
-        for y in reversed(range(img.height)):
-            for x in reversed(range(img.width)):
-                r, g, b = pixels[x, y]
-                index = SPECTRA6_REAL_WORD_RGB.index((r, g, b))
-                pixels[x, y] = SPECTRA6_DEVICE_RGB[index]
-                raw_value = SPECTRA6_DEVICE_INDEX_TO_RAW[index]
-                assert raw_value < 8
-                if (x & 1) == 0:
-                    raw_pending = raw_value
-                else:
-                    raw_bytes.append((raw_pending << 4) | raw_value)
+    img = img.convert("RGB")
 
     img.save(path)
+
     return img
 
 
@@ -343,14 +338,10 @@ def upload():
 
     img = Image.open(path)
     img.save(bmp_path, "BMP")
-#    img.save(pal_path, "BMP")
     os.remove(path)
     image_scale(bmp_path)
-#    image_scale(pal_path)
     make_thumbnail(bmp_path)
-#    make_thumbnail(pal_path)
     convert_for_spectra6(bmp_path, dpal_enabled)
-#    convert_for_spectra6(pal_path, True)
     return redirect("/")
 
 @app.route("/view/<name>")
