@@ -1,4 +1,4 @@
-from flask import Flask, render_template_string, request, redirect, send_from_directory
+from flask import Flask, render_template_string, request, redirect, send_from_directory, session
 from PIL import Image, ImageOps
 import os
 
@@ -10,12 +10,19 @@ import json
 
 app = Flask(__name__)
 
+app.secret_key = "erjbh4r347rb3r28t6r2rsdc"
+
 UPLOAD_FOLDER = "/usr/local/bin/paperboy/uploads"
 THUMB_FOLDER = "/usr/local/bin/paperboy/uploads/thumbs"
 CATEGORY_FILE = "/usr/local/bin/paperboy/categories.json"
+VAULT_FILE = "/usr/local/bin/paperboy/vault.json"
+SECRET_FILE = "/usr/local/bin/paperboy/secret"
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(THUMB_FOLDER, exist_ok=True)
+
+with open(SECRET_FILE) as file:
+    CATEGORY_PASSWORD = ''.join(file.read().splitlines())
 
 epd = epd13in3E.EPD()
 
@@ -45,6 +52,16 @@ def load_categories():
 
 def save_categories(cats):
     with open(CATEGORY_FILE, "w") as f:
+        json.dump(cats, f, indent=4)
+
+def load_vault():
+    if not os.path.exists(VAULT_FILE):
+        return {}
+    with open(VAULT_FILE, "r") as f:
+        return json.load(f)
+
+def save_vault(cats):
+    with open(VAULT_FILE, "w") as f:
         json.dump(cats, f, indent=4)
 
 def get_all_categories(catmap):
@@ -209,6 +226,19 @@ button { padding: 8px 16px; margin: 5px 3px; cursor: pointer; }
     <button type="submit">Create category</button>
 </form>
 
+<div class="btn-row">
+<form method="post" action="/unlock" style="margin-bottom:10px;">
+    <input type="password" name="password" placeholder="Unlock password">
+    <button type="submit">Unlock</button>
+</form>
+
+{% if session.get("unlocked") %}
+    <form method="post" action="/lock" style="margin-bottom:10px;">
+        <button type="submit">Lock</button>
+    </form>
+{% endif %}
+</div>
+
 <form method="get" action="/" style="display:inline-block;">
     <label>Select category: </label>
     <select name="cat" onchange="this.form.submit()">
@@ -219,12 +249,26 @@ button { padding: 8px 16px; margin: 5px 3px; cursor: pointer; }
 </form>
 <!-- Delete Category Button -->
 {% if selected_category != "default" %}
+<div class="btn-row">
 <form method="post" action="/delete_category" style="display:inline-block; margin-left:10px;">
     <input type="hidden" name="category" value="{{selected_category}}">
     <button type="submit" onclick="return confirm('Delete category {{selected_category}}? All images will move to default.')">
         Delete Category
     </button>
 </form>
+<form method="post" action="/hide_category" style="display:inline-block; margin-left:10px;">
+    <input type="hidden" name="hide" value ="{{selected_category}}">
+    <button type="submit">
+        Hide Category
+    </button>
+</form>
+<form method="post" action="/unhide_category" style="display:inline-block; margin-left:10px;">
+    <input type="hidden" name="unhide" value="{{selected_category}}">
+    <button type="submit">
+        Unhide Category
+    </button>
+</form>
+</div>
 {% endif %}
 
 <hr>
@@ -269,25 +313,33 @@ button { padding: 8px 16px; margin: 5px 3px; cursor: pointer; }
 def index():
     selected_category = request.args.get("cat", "default")
     categories = load_categories()
+    PROTECTED_CATEGORIES = load_vault()
 
-    # all image filenames (no thumbnails)
     images = [
         f for f in os.listdir(UPLOAD_FOLDER)
         if os.path.isfile(os.path.join(UPLOAD_FOLDER, f))
     ]
-    # full list of categories
+
     all_cats = get_all_categories(categories)
+
+    # Hide protected categories unless unlocked
+    if not session.get("unlocked"):
+        all_cats = [c for c in all_cats if c not in PROTECTED_CATEGORIES]
+        if selected_category in PROTECTED_CATEGORIES:
+            selected_category = "default"
 
     images.sort()
 
-    # filter images by selected category
     def image_category(img):
         return categories.get(img, "default")
 
-    filtered = [img for img in images if image_category(img) == selected_category]
+    filtered = [
+        img for img in images
+        if image_category(img) == selected_category
+    ]
 
-
-    return render_template_string(HTML,
+    return render_template_string(
+        HTML,
         filtered=filtered,
         categories=categories,
         all_cats=all_cats,
@@ -367,6 +419,22 @@ def delete(name):
 
     return redirect(request.referrer or "/")
 
+@app.route("/unlock", methods=["POST"])
+def unlock():
+    if request.form.get("password") == CATEGORY_PASSWORD:
+        session["unlocked"] = True
+        print("session unlocked")
+    else:
+        print("Session unlock failed. expected: ", CATEGORY_PASSWORD, " got: ", request.form.get("password"))
+        print(type(CATEGORY_PASSWORD))
+        print(type(request.form.get("password")))
+    return redirect(request.referrer or "/")
+
+@app.route("/lock", methods=["POST"])
+def lock():
+    session.pop("unlocked", None)
+    return redirect("/")
+
 @app.route("/set_category", methods=["POST"])
 def set_category():
     image = request.form["image"]
@@ -413,6 +481,31 @@ def delete_category():
 
     save_categories(new_categories)
 
+    return redirect(request.referrer or "/")
+
+@app.route("/hide_category", methods=["POST"])
+def hide_category():
+    category = request.form["hide"].strip()
+    if category:
+        vault = load_vault()
+        if category in vault:
+            return redirect(request.referrer or "/")
+        else: 
+            vault.append(category)
+        save_vault(vault)
+    return redirect(request.referrer or "/")
+
+@app.route("/unhide_category", methods=["POST"])
+def unhide_category():
+    category = request.form["unhide"].strip()
+    if category:
+        vault = load_vault()
+        if category in vault:
+            vault.remove(category)
+        else:
+            return redirect(request.referrer or "/")
+
+        save_vault(vault)
     return redirect(request.referrer or "/")
 
 @app.route("/clear", methods=["POST"])
