@@ -37,15 +37,6 @@ SPECTRA6_DEVICE_RGB = [
     (0, 255, 0),  # GREEN
 ]
 
-SPECTRA6_DEVICE_INDEX_TO_RAW = [
-    0,
-    1,
-    2,
-    3,
-    5,
-    6,
-]
-
 def load_categories():
     if not os.path.exists(CATEGORY_FILE):
         return {}
@@ -60,7 +51,6 @@ def get_all_categories(catmap):
     cats = set(catmap.values())
     cats.add("default")
     return sorted(list(cats))
-
 
 def image_scale(path):
     image = Image.open(path)
@@ -116,7 +106,6 @@ def convert_for_spectra6(path, sel_palette):
 
     return img
 
-
 def make_thumbnail(path):
 
     thumb_path = os.path.join(THUMB_FOLDER, os.path.basename(path).split('/')[-1])
@@ -133,7 +122,7 @@ HTML = """
 <head>
 <title>E-Paper Frame</title>
 <style>
-body { font-family: Arial; margin: 40px; max-width: 900px; }
+body { font-family: Arial; margin: 40px; max-width: 1200px; justify-content: center; }
 button { padding: 8px 16px; margin: 5px 3px; cursor: pointer; }
 .thumb {
     width: 150px;
@@ -364,6 +353,13 @@ def delete(name):
     img_path = os.path.join(UPLOAD_FOLDER, name)
     thumb_path = os.path.join(THUMB_FOLDER, name)
 
+    categories = load_categories()
+
+    if name in categories:
+        del categories[name]
+
+    save_categories(categories)
+
     if os.path.exists(img_path):
         os.remove(img_path)
     if os.path.exists(thumb_path):
@@ -426,4 +422,4 @@ def clear():
     return redirect(request.referrer or "/")
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=80)
