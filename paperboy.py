@@ -249,26 +249,29 @@ button { padding: 8px 16px; margin: 5px 3px; cursor: pointer; }
 </form>
 <!-- Delete Category Button -->
 {% if selected_category != "default" %}
-<div class="btn-row">
-<form method="post" action="/delete_category" style="display:inline-block; margin-left:10px;">
+<form method="post" action="/delete_category" style="display:inline-block; margin-left:5px;">
     <input type="hidden" name="category" value="{{selected_category}}">
     <button type="submit" onclick="return confirm('Delete category {{selected_category}}? All images will move to default.')">
         Delete Category
     </button>
 </form>
-<form method="post" action="/hide_category" style="display:inline-block; margin-left:10px;">
+
+<div class="btn-row">
+{% if session.get("unlocked") %}
+<form method="post" action="/hide_category" style="display:inline-block; margin-left:5px;">
     <input type="hidden" name="hide" value ="{{selected_category}}">
     <button type="submit">
         Hide Category
     </button>
 </form>
-<form method="post" action="/unhide_category" style="display:inline-block; margin-left:10px;">
+<form method="post" action="/unhide_category" style="display:inline-block; margin-left:5px;">
     <input type="hidden" name="unhide" value="{{selected_category}}">
     <button type="submit">
         Unhide Category
     </button>
 </form>
 </div>
+{% endif %}
 {% endif %}
 
 <hr>
