@@ -14,12 +14,14 @@ app.secret_key = "erjbh4r347rb3r28t6r2rsdc"
 
 UPLOAD_FOLDER = "/usr/local/bin/paperboy/uploads"
 THUMB_FOLDER = "/usr/local/bin/paperboy/uploads/thumbs"
+TEMP_FOLDER = "/usr/local/bin/paperboy/temp"
 CATEGORY_FILE = "/usr/local/bin/paperboy/categories.json"
 VAULT_FILE = "/usr/local/bin/paperboy/vault.json"
 SECRET_FILE = "/usr/local/bin/paperboy/secret"
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(THUMB_FOLDER, exist_ok=True)
+os.makedirs(TEMP_FOLDER, exist_ok=True)
 
 with open(SECRET_FILE) as file:
     CATEGORY_PASSWORD = ''.join(file.read().splitlines())
@@ -369,20 +371,20 @@ def upload():
     print("got palette")
 
     filename = f.filename
+    tmp_path = os.path.join(TEMP_FOLDER, filename)
     path = os.path.join(UPLOAD_FOLDER, filename)
     base, _ = os.path.splitext(path)    
     bmp_path= base + ".bmp"
-    pal_path= base + "-dev.bmp"
-    f.save(path)
+    f.save(tmp_path)
 
     if dither_method == "spectra6":
         dpal_enabled = True
     else:
         dpal_enabled = False
 
-    img = Image.open(path)
+    img = Image.open(tmp_path)
     img.save(bmp_path, "BMP")
-    os.remove(path)
+    os.remove(temp_path)
     image_scale(bmp_path)
     make_thumbnail(bmp_path)
     convert_for_spectra6(bmp_path, dpal_enabled)
