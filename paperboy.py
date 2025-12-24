@@ -382,7 +382,7 @@ def upload():
 
     img = Image.open(tmp_path)
     img.save(bmp_path, "BMP")
-    os.remove(temp_path)
+    os.remove(tmp_path)
     image_scale(bmp_path)
     make_thumbnail(bmp_path)
     convert_for_spectra6(bmp_path, dpal_enabled)
