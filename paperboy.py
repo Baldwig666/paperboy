@@ -26,6 +26,8 @@ os.makedirs(TEMP_FOLDER, exist_ok=True)
 with open(SECRET_FILE) as file:
     CATEGORY_PASSWORD = ''.join(file.read().splitlines())
 
+EPD_WORKING = False
+
 epd = epd13in3E.EPD()
 
 SPECTRA6_REAL_WORD_RGB = [
@@ -363,13 +365,9 @@ def shutdown():
 
 @app.route("/upload", methods=["POST"])
 def upload():
-    print("1")
+
     f = request.files["file"]
-    print("got file")
-
     dither_method = request.form["palette"]
-    print("got palette")
-
     filename = f.filename
     tmp_path = os.path.join(TEMP_FOLDER, filename)
     path = os.path.join(UPLOAD_FOLDER, filename)
@@ -388,6 +386,7 @@ def upload():
     image_scale(bmp_path)
     make_thumbnail(bmp_path)
     convert_for_spectra6(bmp_path, dpal_enabled)
+    EPD_WORKING = False
     return redirect("/")
 
 @app.route("/view/<name>")
@@ -396,13 +395,19 @@ def view(name):
 
 @app.route("/show/<name>")
 def show(name):
-
-    path = os.path.join(UPLOAD_FOLDER, name)
-    img = Image.open(path)
-    epd.Init()
-    epd.Clear()
-    epd.display(epd.getbuffer(img))
-    epd.sleep()
+    global EPD_WORKING
+    print(EPD_WORKING)
+    if EPD_WORKING:
+        return "ePaper bussy.... please wait."
+    else:
+        EPD_WORKING = True
+        path = os.path.join(UPLOAD_FOLDER, name)
+        img = Image.open(path)
+        epd.Init()
+        epd.Clear()
+        epd.display(epd.getbuffer(img))
+        epd.sleep()
+        EPD_WORKING = False
     return redirect(request.referrer or "/")
 
 @app.route("/delete/<name>", methods=["POST"])
