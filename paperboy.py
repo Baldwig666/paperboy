@@ -225,6 +225,10 @@ button { padding: 8px 16px; margin: 5px 3px; cursor: pointer; }
 
 <h2>Gallery</h2>
 
+<details>
+  <summary>Settings</summary>
+  <p>
+
 <form method="post" action="/add_category">
     <input type="text" name="new_category" placeholder="New category name">
     <button type="submit">Create category</button>
@@ -243,6 +247,28 @@ button { padding: 8px 16px; margin: 5px 3px; cursor: pointer; }
 {% endif %}
 </div>
 
+<div class="btn-row">
+{% if session.get("unlocked") %}
+<form method="post" action="/hide_category" style="display:inline-block; margin-left:5px;">
+    <input type="hidden" name="hide" value ="{{selected_category}}">
+    <button type="submit">
+        Hide Category
+    </button>
+</form>
+<form method="post" action="/unhide_category" style="display:inline-block; margin-left:5px;">
+    <input type="hidden" name="unhide" value="{{selected_category}}">
+    <button type="submit">
+        Unhide Category
+    </button>
+</form>
+</div>
+{% endif %}
+
+</p>
+</details>
+
+<br><br>
+
 <form method="get" action="/" style="display:inline-block;">
     <label>Select category: </label>
     <select name="cat" onchange="this.form.submit()">
@@ -260,22 +286,6 @@ button { padding: 8px 16px; margin: 5px 3px; cursor: pointer; }
     </button>
 </form>
 
-<div class="btn-row">
-{% if session.get("unlocked") %}
-<form method="post" action="/hide_category" style="display:inline-block; margin-left:5px;">
-    <input type="hidden" name="hide" value ="{{selected_category}}">
-    <button type="submit">
-        Hide Category
-    </button>
-</form>
-<form method="post" action="/unhide_category" style="display:inline-block; margin-left:5px;">
-    <input type="hidden" name="unhide" value="{{selected_category}}">
-    <button type="submit">
-        Unhide Category
-    </button>
-</form>
-</div>
-{% endif %}
 {% endif %}
 
 <hr>
