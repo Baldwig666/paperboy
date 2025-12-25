@@ -186,7 +186,7 @@ button { padding: 8px 16px; margin: 5px 3px; cursor: pointer; }
   <legend>Upload file</legend>
 
     <form action="/upload" method="post" enctype="multipart/form-data">
-      <input type="file" name="file" required accept=".png,.jpg,.jpeg">  <br> <br>
+      <input type="file" name="file" required accept=".bmp,.png,.jpg,.jpeg">  <br> <br>
 
       <label>
         <input type="radio" name="palette" value="default">
