@@ -138,59 +138,164 @@ def make_thumbnail(path):
 
 
 HTML = """
-<!DOCTYPE html>
-<html>
-<head>
-<title>E-Paper Frame</title>
-<style>
-body { font-family: Arial; margin: 40px; max-width: 1200px; justify-content: center; }
-button { padding: 8px 16px; margin: 5px 3px; cursor: pointer; }
-.thumb {
-    width: 150px;
-    border: 2px solid #ccc;
-    margin: 5px;
-}
-.thumb:hover { border-color: #000; }
-.gallery { display: flex; flex-wrap: wrap; }
-.item { margin: 10px; text-align: center; }
 
-.viewbtn {
-    background: #5bc0de;
-    color: white;
-    border: none;
-    padding: 5px 10px;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>E-Paper Frame</title>
+
+<style>
+:root {
+  --bg: #f4f6f8;
+  --card: #ffffff;
+  --border: #e0e0e0;
+  --primary: #2563eb;
+  --danger: #dc2626;
+  --muted: #6b7280;
+  --radius: 12px;
 }
-.showbtn {
-    background: #0275d8;
-    color: white;
-    border: none;
-    padding: 5px 10px;
+
+* {
+  box-sizing: border-box;
 }
-.delbtn {
-    background: #d9534f;
-    color: white;
-    border: none;
-    padding: 5px 10px;
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
+  margin: 0;
+  padding: 40px;
+  color: #111;
 }
+
+h2 {
+  margin-top: 0;
+}
+
+.container {
+  max-width: 1200px;
+  margin: auto;
+}
+
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+}
+
+button {
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: white;
+}
+
+.btn-muted {
+  background: #e5e7eb;
+}
+
+input[type="file"],
+input[type="text"],
+input[type="password"],
+select {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+legend {
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
 .btn-row {
   display: flex;
-  gap: 10px;   /* space between buttons */
+  gap: 12px;
+  flex-wrap: wrap;
   align-items: center;
+}
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 20px;
+}
+
+.item {
+  background: #fafafa;
+  border-radius: var(--radius);
+  padding: 12px;
+  text-align: center;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+}
+
+.thumb {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  margin-bottom: 10px;
+}
+
+details summary {
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--primary);
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 24px 0;
+}
+
+small {
+  color: var(--muted);
 }
 </style>
 </head>
-<body>
-<h2>E-Paper Picture Frame</h2>
 
-<fieldset>
-  <legend>Upload file</legend>
+<body>
+<div class="container">
+
+  <div class="card">
+    <h2>E-Paper Picture Frame</h2>
 
     <form action="/upload" method="post" enctype="multipart/form-data">
-      <input type="file" name="file" required accept=".bmp,.png,.jpg,.jpeg">  <br> <br>
+      <legend>Upload image</legend>
+
+      <input type="file" name="file" required accept=".bmp,.png,.jpg,.jpeg"><br><br>
 
       <label>
         <input type="radio" name="palette" value="default">
-          Default palette
+        Default palette
       </label><br>
 
       <label>
@@ -198,131 +303,129 @@ button { padding: 8px 16px; margin: 5px 3px; cursor: pointer; }
         Spectra 6 device palette
       </label><br><br>
 
-      <button type="submit">Upload image</button><br><br>
-
-    </form>
-</fieldset>
-
-<fieldset>
-
-  <div class="btn-row">
-    <form action="/clear" method="post">
-      <button type="submit" style="background: #d9534f; color: white;">Clear Display</button>
-    </form>
-
-    <form action="/shutdown" method="post" onsubmit="return confirm('Really shut down the Raspberry Pi?');">
-      <button type="submit" style="background:red;color:white;padding:10px;border:none;border-radius:5px;">
-        Shutdown Raspberry Pi
-      </button>
+      <button class="btn-primary" type="submit">Upload image</button>
     </form>
   </div>
 
-</fieldset>
+  <div class="card">
+    <div class="btn-row">
+      <form action="/clear" method="post">
+        <button class="btn-danger" type="submit">Clear Display</button>
+      </form>
 
-<br>
+      <form action="/shutdown" method="post"
+            onsubmit="return confirm('Really shut down the Raspberry Pi?');">
+        <button class="btn-danger" type="submit">Shutdown Raspberry Pi</button>
+      </form>
+    </div>
+  </div>
 
-<fieldset>
+  <div class="card">
+    <h2>Gallery</h2>
 
-<h2>Gallery</h2>
-
-<details>
-  <summary>Settings</summary>
-  <p>
-
-<form method="post" action="/add_category">
-    <input type="text" name="new_category" placeholder="New category name">
-    <button type="submit">Create category</button>
-</form>
-
-<div class="btn-row">
-<form method="post" action="/unlock" style="margin-bottom:10px;">
-    <input type="password" name="password" placeholder="Unlock password">
-    <button type="submit">Unlock</button>
-</form>
-
-{% if session.get("unlocked") %}
-    <form method="post" action="/lock" style="margin-bottom:10px;">
-        <button type="submit">Lock</button>
-    </form>
-{% endif %}
-</div>
-
-<div class="btn-row">
-{% if session.get("unlocked") %}
-<form method="post" action="/hide_category" style="display:inline-block; margin-left:5px;">
-    <input type="hidden" name="hide" value ="{{selected_category}}">
-    <button type="submit">
-        Hide Category
-    </button>
-</form>
-<form method="post" action="/unhide_category" style="display:inline-block; margin-left:5px;">
-    <input type="hidden" name="unhide" value="{{selected_category}}">
-    <button type="submit">
-        Unhide Category
-    </button>
-</form>
-</div>
-{% endif %}
-
-</p>
-</details>
-
-<br><br>
-
-<form method="get" action="/" style="display:inline-block;">
-    <label>Select category: </label>
-    <select name="cat" onchange="this.form.submit()">
+    <form method="get" action="/">
+      <label>Category:</label>
+      <select name="cat" onchange="this.form.submit()">
         {% for c in all_cats %}
         <option value="{{c}}" {% if c == selected_category %}selected{% endif %}>{{c}}</option>
         {% endfor %}
-    </select>
-</form>
-<!-- Delete Category Button -->
-{% if selected_category != "default" %}
-<form method="post" action="/delete_category" style="display:inline-block; margin-left:5px;">
-    <input type="hidden" name="category" value="{{selected_category}}">
-    <button type="submit" onclick="return confirm('Delete category {{selected_category}}? All images will move to default.')">
-        Delete Category
-    </button>
-</form>
-
-{% endif %}
-
-<hr>
-
-<div class="gallery">
-{% for img in filtered %}
-<div class="item">
-
-    <a href="/view/{{img}}" target="_self">
-      <img class="thumb" src="/thumb/{{img}}">
-    </a>
-
-    <div class="btn-row">
-      <a href="/show/{{img}}">
-        <button class="viewbtn" type="button">Show image</button>
-      </a>
-      <form action="/delete/{{img}}"  method="post" onsubmit="return confirm('Really delete image?');">
-          <button class="delbtn" type="submit">Delete</button>
-      </form>
-    </div>
-
-    <form method="post" action="/set_category">
-        <input type="hidden" name="image" value="{{img}}">
-        <select name="category" onchange="this.form.submit()">
-            {% for c in all_cats %}
-            <option value="{{c}}" {% if categories.get(img,'default') == c %}selected{% endif %}>{{c}}</option>
-            {% endfor %}
-        </select>
+      </select>
     </form>
-</div>
-{% endfor %}
-</div>
 
-</fieldset>
+<br>
 
+    <details>
+      <summary>Settings</summary>
+      <br>
+
+      <form method="post" action="/add_category">
+        <input type="text" name="new_category" placeholder="New category name">
+        <button class="btn-primary" type="submit">Create</button>
+      </form>
+
+      <br>
+
+      <div class="btn-row">
+        <form method="post" action="/unlock">
+          <input type="password" name="password" placeholder="Unlock password">
+          <button class="btn-primary" type="submit">Unlock</button>
+        </form>
+
+        {% if session.get("unlocked") %}
+        <form method="post" action="/lock">
+          <button class="btn-muted" type="submit">Lock</button>
+        </form>
+        {% endif %}
+      </div>
+
+      {% if session.get("unlocked") %}
+      <br>
+      <div class="btn-row">
+        <form method="post" action="/hide_category">
+          <input type="hidden" name="hide" value="{{selected_category}}">
+          <button class="btn-muted" type="submit">Hide Category</button>
+        </form>
+
+        <form method="post" action="/unhide_category">
+          <input type="hidden" name="unhide" value="{{selected_category}}">
+          <button class="btn-muted" type="submit">Unhide Category</button>
+        </form>
+        {% if selected_category != "default" %}
+         <form method="post" action="/delete_category" >
+          <input type="hidden" name="category" value="{{selected_category}}">
+          <button class="btn-danger" type="submit"
+           onclick="return confirm('Delete category {{selected_category}}?');">
+           Delete Category
+          </button>
+         </form>
+    {% endif %}
+
+      </div>
+      {% endif %}
+    </details>
+
+    <br>
+
+    <hr>
+
+    <div class="gallery">
+      {% for img in filtered %}
+      <div class="item">
+        <a href="/view/{{img}}">
+          <img class="thumb" src="/thumb/{{img}}">
+        </a>
+
+        <div class="btn-row">
+          <a href="/show/{{img}}">
+            <button class="btn-primary" type="button">Show</button>
+          </a>
+
+          <form action="/delete/{{img}}" method="post"
+                onsubmit="return confirm('Really delete image?');">
+            <button class="btn-danger" type="submit">Delete</button>
+          </form>
+        </div>
+
+        <form method="post" action="/set_category">
+          <input type="hidden" name="image" value="{{img}}">
+          <select name="category" onchange="this.form.submit()">
+            {% for c in all_cats %}
+            <option value="{{c}}" {% if categories.get(img,'default') == c %}selected{% endif %}>
+              {{c}}
+            </option>
+            {% endfor %}
+          </select>
+        </form>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
 </body>
 </html>
+
+
 """
 
 
