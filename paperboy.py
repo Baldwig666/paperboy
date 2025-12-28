@@ -1,15 +1,17 @@
 from flask import Flask, render_template_string, request, redirect, send_from_directory, session
 from PIL import Image, ImageOps
 import os
-
-# Waveshare driver
-import epd13in3E
 import subprocess
 import os
 import json
 
-app = Flask(__name__)
+# Waveshare driver
+import epd13in3E
+epd = epd13in3E.EPD()
+EPD_WORKING = False
 
+
+app = Flask(__name__)
 app.secret_key = "erjbh4r347rb3r28t6r2rsdc"
 
 UPLOAD_FOLDER = "/usr/local/bin/paperboy/uploads"
@@ -25,10 +27,6 @@ os.makedirs(TEMP_FOLDER, exist_ok=True)
 
 with open(SECRET_FILE) as file:
     CATEGORY_PASSWORD = ''.join(file.read().splitlines())
-
-EPD_WORKING = False
-
-epd = epd13in3E.EPD()
 
 SPECTRA6_REAL_WORD_RGB = [
     (25, 30, 33),
