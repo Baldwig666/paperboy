@@ -573,7 +573,7 @@ def set_category():
         categories[image] = category
 
     save_categories(categories)
-    return redirect(request.referrer or "/")
+    return "", 204
 
 @app.route("/add_category", methods=["POST"])
 def add_category():
@@ -604,7 +604,7 @@ def delete_category():
 
     save_categories(new_categories)
 
-    return redirect(request.referrer or "/")
+    return  redirect ("/?cat=default")
 
 @app.route("/hide_category", methods=["POST"])
 def hide_category():
@@ -616,7 +616,7 @@ def hide_category():
         else: 
             vault.append(category)
         save_vault(vault)
-    return redirect(request.referrer or "/")
+    return "", 204
 
 @app.route("/unhide_category", methods=["POST"])
 def unhide_category():
@@ -626,7 +626,7 @@ def unhide_category():
         if category in vault:
             vault.remove(category)
         else:
-            return redirect(request.referrer or "/")
+            return "", 204
 
         save_vault(vault)
     return redirect(request.referrer or "/")
