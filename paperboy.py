@@ -19,6 +19,7 @@ THUMB_FOLDER = "/usr/local/bin/paperboy/uploads/thumbs"
 TEMP_FOLDER = "/usr/local/bin/paperboy/temp"
 CATEGORY_FILE = "/usr/local/bin/paperboy/categories.json"
 VAULT_FILE = "/usr/local/bin/paperboy/vault.json"
+CURRENT_IMAGE = "/usr/local/bin/paperboy/current.json"
 SECRET_FILE = "/usr/local/bin/paperboy/secret"
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -70,6 +71,16 @@ def get_all_categories(catmap):
     cats = set(catmap.values())
     cats.add("default")
     return sorted(list(cats))
+
+def get_current():
+    if not os.path.exists(VAULT_FILE):
+        return {}
+    with open(CURRENT_IMAGE, "r") as f:
+        return json.load(f)
+
+def set_current(loaded_image):
+    with open(CURRENT_IMAGE, "w") as f:
+        json.dump(loaded_image, f, indent=4)
 
 def image_scale(path):
     image = Image.open(path)
@@ -179,9 +190,19 @@ h2 {
   background: var(--card);
   border-radius: var(--radius);
   padding: 24px;
+  height: 400px;
   margin-bottom: 24px;
   box-shadow: 0 10px 25px rgba(0,0,0,0.05);
 }
+
+.card-gallery {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+}
+
 
 button {
   border: none;
@@ -283,6 +304,10 @@ small {
 <body>
 <div class="container">
 
+  <table style="width:100%">
+  <tr style="width100%">
+  <td>
+
   <div class="card">
     <h2>E-Paper Picture Frame</h2>
 
@@ -305,20 +330,36 @@ small {
     </form>
   </div>
 
+  </td>
+
+  <td>
   <div class="card">
-    <div class="btn-row">
+  <div class="item">
+    <img class="thumb" src="/thumb/{{image_on_paper}}">
+  </div>
+  </div>
+
+  </td>
+  <td>
+
+  <div class="card">
       <form action="/clear" method="post">
         <button class="btn-danger" type="submit">Clear Display</button>
       </form>
+
+      <br>
 
       <form action="/shutdown" method="post"
             onsubmit="return confirm('Really shut down the Raspberry Pi?');">
         <button class="btn-danger" type="submit">Shutdown Raspberry Pi</button>
       </form>
-    </div>
   </div>
 
-  <div class="card">
+  </td>
+  </tr>
+  </table>
+
+  <div class="card-gallery">
     <h2>Gallery</h2>
 
     <form method="get" action="/">
@@ -456,12 +497,17 @@ def index():
         if image_category(img) == selected_category
     ]
 
+    image_on_paper = ''.join(get_current())
+
+    print(image_on_paper)
+
     return render_template_string(
         HTML,
         filtered=filtered,
         categories=categories,
         all_cats=all_cats,
-        selected_category=selected_category
+        selected_category=selected_category,
+        image_on_paper=image_on_paper
     )
 
 @app.route("/thumb/<name>")
@@ -518,6 +564,7 @@ def show(name):
         epd.Clear()
         epd.display(epd.getbuffer(img))
         epd.sleep()
+        set_current(name)
         EPD_WORKING = False
     return redirect(request.referrer or "/")
 
