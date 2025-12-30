@@ -474,6 +474,8 @@ def index():
     categories = load_categories()
     PROTECTED_CATEGORIES = load_vault()
 
+    image_on_paper = ''.join(get_current())
+
     images = [
         f for f in os.listdir(UPLOAD_FOLDER)
         if os.path.isfile(os.path.join(UPLOAD_FOLDER, f))
@@ -481,25 +483,24 @@ def index():
 
     all_cats = get_all_categories(categories)
 
+    def image_category(img):
+        return categories.get(img, "default")
+
     # Hide protected categories unless unlocked
     if not session.get("unlocked"):
+        if image_category(image_on_paper) in PROTECTED_CATEGORIES:
+            image_on_paper = "login_blurr.png"
+
         all_cats = [c for c in all_cats if c not in PROTECTED_CATEGORIES]
         if selected_category in PROTECTED_CATEGORIES:
             selected_category = "default"
 
     images.sort()
 
-    def image_category(img):
-        return categories.get(img, "default")
-
     filtered = [
         img for img in images
         if image_category(img) == selected_category
     ]
-
-    image_on_paper = ''.join(get_current())
-
-    print(image_on_paper)
 
     return render_template_string(
         HTML,
@@ -560,10 +561,10 @@ def show(name):
         EPD_WORKING = True
         path = os.path.join(UPLOAD_FOLDER, name)
         img = Image.open(path)
-        epd.Init()
-        epd.Clear()
-        epd.display(epd.getbuffer(img))
-        epd.sleep()
+#        epd.Init()
+#        epd.Clear()
+#        epd.display(epd.getbuffer(img))
+#        epd.sleep()
         set_current(name)
         EPD_WORKING = False
     return redirect(request.referrer or "/")
