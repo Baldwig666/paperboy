@@ -561,10 +561,10 @@ def show(name):
         EPD_WORKING = True
         path = os.path.join(UPLOAD_FOLDER, name)
         img = Image.open(path)
-#        epd.Init()
-#        epd.Clear()
-#        epd.display(epd.getbuffer(img))
-#        epd.sleep()
+        epd.Init()
+        epd.Clear()
+        epd.display(epd.getbuffer(img))
+        epd.sleep()
         set_current(name)
         EPD_WORKING = False
     return redirect(request.referrer or "/")
