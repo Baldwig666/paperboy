@@ -539,6 +539,8 @@ def upload():
         dpal_enabled = False
 
     img = Image.open(tmp_path)
+    img = ImageOps.exif_transpose(img)
+
     img.save(bmp_path, "BMP")
     os.remove(tmp_path)
     image_scale(bmp_path)
