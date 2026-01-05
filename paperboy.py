@@ -21,6 +21,7 @@ CATEGORY_FILE = "/usr/local/bin/paperboy/categories.json"
 VAULT_FILE = "/usr/local/bin/paperboy/vault.json"
 CURRENT_IMAGE = "/usr/local/bin/paperboy/current.json"
 SECRET_FILE = "/usr/local/bin/paperboy/secret"
+ORIENTATION_FILE = "/usr/local/bin/paperboy/orientation"
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(THUMB_FOLDER, exist_ok=True)
@@ -28,6 +29,9 @@ os.makedirs(TEMP_FOLDER, exist_ok=True)
 
 with open(SECRET_FILE) as file:
     CATEGORY_PASSWORD = ''.join(file.read().splitlines())
+
+with open(ORIENTATION_FILE) as file:
+    LANDSCAPE_ORIENTATION = file.readline().strip('\n')
 
 SPECTRA6_REAL_WORD_RGB = [
     (25, 30, 33),
@@ -88,6 +92,16 @@ def image_scale(path):
 
     epaper_width = epd.width
     epaper_height = epd.height
+
+    # if landscape image is detected the image will be rotated according to 
+    # the given orientation to be portrait native and splayed correctly
+    if ((img_width / img_height) > 1 ):
+        if LANDSCAPE_ORIENTATION == "left":
+            image = image.rotate(90)
+            img_width, img_height = image.size
+        else: 
+            image = image.rotate(270)
+            img_width, img_height = image.size
 
     # Computed scaling
     scale_ratio = max(epaper_width / img_width, epaper_height / img_height)
@@ -540,12 +554,11 @@ def upload():
 
     img = Image.open(tmp_path)
     img = ImageOps.exif_transpose(img)
-
     img.save(bmp_path, "BMP")
-    os.remove(tmp_path)
     image_scale(bmp_path)
-    make_thumbnail(bmp_path)
+    make_thumbnail(tmp_path)
     convert_for_spectra6(bmp_path, dpal_enabled)
+    os.remove(tmp_path)
     EPD_WORKING = False
     return redirect("/")
 

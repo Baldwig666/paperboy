@@ -1,0 +1,6 @@
+left
+
+
+# This is the position of the hanger for landscape mode. 
+# The display is portrait native with the connection on the bottom
+# the landscape position can be either "left" or "right" seen from the initial position.
