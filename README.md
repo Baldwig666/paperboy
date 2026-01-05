@@ -15,10 +15,11 @@ The Python script is currently expecting ro be installed in
 
 please copy all files there. Or git clone directly into /usr/local/bin.
 
-You can upload the folowing file types BMP, PNG and JPG
+You can upload the folowing file types BMP, PNG, JPG and jpeg
 The images you upload are automatically resized and cropped to the required ePaper size.
-The Images are currently expected to be portrait but you can rotate the image before uploading if you need landscape support.
-Maybe I'll add landscape support later.
+
+Since the panel is portrait native, expecting the connection facing down, landscape images are automatically rotated
+so they are displayed correctly. The orientation of your frame can be set as "left" or "right" in the "orientation" file.
 
 The Image is then dithered with the RGBY-BW palette and if you have the "Spectra 6 device palette" Option enabled then 
 the palette is converted to a false color palette to enhance image quality. (I never use the default palette. ;) )
