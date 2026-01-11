@@ -265,10 +265,9 @@ legend {
 }
 
 .btn-row {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  align-items: center;
+ display: flex;
+ justify-content: center;
+ gap: 12px;
 }
 
 .gallery {
@@ -458,7 +457,7 @@ small {
             <button class="btn-danger" type="submit">Delete</button>
           </form>
         </div>
-
+        <br>
         <form method="post" action="/set_category">
           <input type="hidden" name="image" value="{{img}}">
           <select name="category" onchange="this.form.submit()">
