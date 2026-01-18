@@ -172,6 +172,15 @@ def convert_for_spectra6(path, sel_palette):
 
     pal_image.putpalette(palette)
     img = Image.open(path).quantize(dither=Image.Dither.FLOYDSTEINBERG, palette=pal_image)
+
+    # Build a new device palette
+    device_palette = (
+        tuple(v for rgb in SPECTRA6_RGB for v in rgb)
+        + (0, 0, 0) * 250
+    )
+    img.putpalette(device_palette)
+
+
     img = img.convert("RGB")
     img.save(path)
     return img
