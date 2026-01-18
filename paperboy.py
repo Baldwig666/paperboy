@@ -293,6 +293,11 @@ legend {
  gap: 12px;
 }
 
+.btn-std {
+ display: flex;
+ gap: 12px;
+}
+
 .gallery {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -431,22 +436,23 @@ small {
 
       <br>
 
-      <div class="btn-row">
+        {% if not session.get("unlocked") %}
         <form method="post" action="/unlock">
           <input type="password" name="password" placeholder="Unlock password">
           <button class="btn-primary" type="submit">Unlock</button>
         </form>
+        {% endif %}
+
 
         {% if session.get("unlocked") %}
         <form method="post" action="/lock">
-          <button class="btn-muted" type="submit">Lock</button>
+          <button class="btn-muted" type="submit">Lock categories </button>
         </form>
         {% endif %}
-      </div>
 
       {% if session.get("unlocked") %}
       <br>
-      <div class="btn-row">
+      <div class="btn-std">
         <form method="post" action="/hide_category">
           <input type="hidden" name="hide" value="{{selected_category}}">
           <button class="btn-muted" type="submit">Hide Category</button>
