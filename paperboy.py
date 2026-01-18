@@ -12,17 +12,17 @@ import epd13in3E
 epd = epd13in3E.EPD()
 EPD_WORKING = False
 
-
-
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
 
-UPLOAD_FOLDER = "/usr/local/bin/paperboy/uploads"
-THUMB_FOLDER = "/usr/local/bin/paperboy/uploads/thumbs"
-TEMP_FOLDER = "/usr/local/bin/paperboy/temp"
-CATEGORY_FILE = "/usr/local/bin/paperboy/categories.json"
-VAULT_FILE = "/usr/local/bin/paperboy/vault.json"
-CURRENT_IMAGE = "/usr/local/bin/paperboy/current.json"
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+
+UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
+THUMB_FOLDER = os.path.join(BASE_DIR, "uploads/thumbs")
+TEMP_FOLDER = os.path.join(BASE_DIR, "temp")
+CATEGORY_FILE = os.path.join(BASE_DIR, "categories.json")
+VAULT_FILE = os.path.join(BASE_DIR, "vault.json")
+CURRENT_IMAGE = os.path.join(BASE_DIR, "current.json")
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(THUMB_FOLDER, exist_ok=True)
@@ -133,7 +133,6 @@ def image_scale(path):
     left = (epaper_width - resized_width) // 2
     top = (epaper_height - resized_height) // 2
     resized_image.paste(output_image, (left, top))
-
     resized_image.save(path, format="BMP")
     return resized_image
 
@@ -164,13 +163,9 @@ def convert_for_spectra6(path, sel_palette):
         )
 
     pal_image.putpalette(palette)
-
     img = Image.open(path).quantize(dither=Image.Dither.FLOYDSTEINBERG, palette=pal_image)
-
     img = img.convert("RGB")
-
     img.save(path)
-
     return img
 
 def make_thumbnail(path):
