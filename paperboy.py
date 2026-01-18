@@ -6,7 +6,7 @@ import subprocess
 import os
 import json
 
-from config import SECRET_KEY, CATEGORY_PASSWORD
+from config import SECRET_KEY, CATEGORY_PASSWORD, LANDSCAPE_ORIENTATION
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
