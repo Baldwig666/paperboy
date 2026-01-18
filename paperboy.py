@@ -1,21 +1,29 @@
 from flask import Flask, render_template_string, request, redirect, send_from_directory, session
 from PIL import Image, ImageOps
 import os
+import sys
 import subprocess
 import os
 import json
 
 from config import SECRET_KEY, CATEGORY_PASSWORD
 
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+
 # Waveshare driver
-import epd13in3E
-epd = epd13in3E.EPD()
+libdir = os.path.join(BASE_DIR, 'lib')
+if os.path.exists(libdir): sys.path.append(libdir)
+try:
+    import epd13in3E
+    epd = epd13in3E.EPD()
+except:
+    print ("ERROR! unable to load waveshare driver!")
+
+
 EPD_WORKING = False
 
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
-
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
 THUMB_FOLDER = os.path.join(BASE_DIR, "uploads/thumbs")
