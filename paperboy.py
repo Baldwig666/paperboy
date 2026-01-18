@@ -5,14 +5,17 @@ import subprocess
 import os
 import json
 
+from config import SECRET_KEY, CATEGORY_PASSWORD
+
 # Waveshare driver
 import epd13in3E
 epd = epd13in3E.EPD()
 EPD_WORKING = False
 
 
+
 app = Flask(__name__)
-app.secret_key = "erjbh4r347rb3r28t6r2rsdc"
+app.secret_key = SECRET_KEY
 
 UPLOAD_FOLDER = "/usr/local/bin/paperboy/uploads"
 THUMB_FOLDER = "/usr/local/bin/paperboy/uploads/thumbs"
@@ -20,18 +23,29 @@ TEMP_FOLDER = "/usr/local/bin/paperboy/temp"
 CATEGORY_FILE = "/usr/local/bin/paperboy/categories.json"
 VAULT_FILE = "/usr/local/bin/paperboy/vault.json"
 CURRENT_IMAGE = "/usr/local/bin/paperboy/current.json"
-SECRET_FILE = "/usr/local/bin/paperboy/secret"
-ORIENTATION_FILE = "/usr/local/bin/paperboy/orientation"
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(THUMB_FOLDER, exist_ok=True)
 os.makedirs(TEMP_FOLDER, exist_ok=True)
 
-with open(SECRET_FILE) as file:
-    CATEGORY_PASSWORD = ''.join(file.read().splitlines())
+SPECTRA6_PHOTO = [
+    (28, 32, 36),
+    (235, 235, 232),
+    (225, 210, 120),
+    (150, 45, 45),
+    (40, 90, 160),
+    (40, 105, 70),
+]
 
-with open(ORIENTATION_FILE) as file:
-    LANDSCAPE_ORIENTATION = file.readline().strip('\n')
+SPECTRA6_COMIC = [
+    (20, 20, 20),
+    (235, 235, 235),
+    (240, 220, 70),
+    (180, 20, 30),
+    (30, 80, 170),
+    (20, 100, 40),
+]
+
 
 SPECTRA6_REAL_WORD_RGB = [
     (25, 30, 33),
@@ -42,7 +56,8 @@ SPECTRA6_REAL_WORD_RGB = [
     (18, 95, 32),
 ]
 
-SPECTRA6_DEVICE_RGB = [
+
+SPECTRA6_RGB = [
     (0, 0, 0),  # BLACK
     (255, 255, 255),  # WHITE
     (255, 255, 0),  # YELLOW
@@ -127,22 +142,30 @@ def convert_for_spectra6(path, sel_palette):
 
     pal_image = Image.new("P", (1,1))
 
-    palette = (
-        tuple(v for rgb in SPECTRA6_REAL_WORD_RGB for v in rgb)
-        + SPECTRA6_REAL_WORD_RGB[0] * 250
-    )
-    
+    if sel_palette == "photo":
+        palette = (
+            tuple(v for rgb in SPECTRA6_PHOTO for v in rgb)
+            + SPECTRA6_REAL_WORD_RGB[0] * 250
+        )
+    elif sel_palette == "comic":
+        palette = (
+            tuple(v for rgb in SPECTRA6_COMIC for v in rgb)
+            + SPECTRA6_REAL_WORD_RGB[0] * 250
+        )
+    elif sel_palette == "spectra6":
+        palette = (
+            tuple(v for rgb in SPECTRA6_REAL_WORD_RGB for v in rgb)
+            + SPECTRA6_REAL_WORD_RGB[0] * 250
+        )
+    else:
+        palette = (
+            tuple(v for rgb in SPECTRA6_RGB for v in rgb)
+            + SPECTRA6_REAL_WORD_RGB[0] * 250
+        )
+
     pal_image.putpalette(palette)
 
     img = Image.open(path).quantize(dither=Image.Dither.FLOYDSTEINBERG, palette=pal_image)
-
-    if sel_palette:
-        # Build a new device palette
-        device_palette = (
-            tuple(v for rgb in SPECTRA6_DEVICE_RGB for v in rgb)
-            + (0, 0, 0) * 250
-        )
-        img.putpalette(device_palette)
 
     img = img.convert("RGB")
 
@@ -337,7 +360,18 @@ small {
       <label>
         <input type="radio" name="palette" value="spectra6" checked>
         Spectra 6 device palette
+      </label><br>
+
+      <label>
+        <input type="radio" name="palette" value="photo">
+        Spectra 6 photo palette
+      </label><br>
+
+      <label>
+        <input type="radio" name="palette" value="comic">
+        Spectra 6 comic palette
       </label><br><br>
+
 
       <button class="btn-primary" type="submit">Upload image</button>
     </form>
@@ -542,21 +576,15 @@ def upload():
     filename = f.filename
     tmp_path = os.path.join(TEMP_FOLDER, filename)
     path = os.path.join(UPLOAD_FOLDER, filename)
-    base, _ = os.path.splitext(path)    
+    base, _ = os.path.splitext(path)
     bmp_path= base + ".bmp"
     f.save(tmp_path)
-
-    if dither_method == "spectra6":
-        dpal_enabled = True
-    else:
-        dpal_enabled = False
-
     img = Image.open(tmp_path)
     img = ImageOps.exif_transpose(img)
     img.save(bmp_path, "BMP")
     image_scale(bmp_path)
     make_thumbnail(tmp_path)
-    convert_for_spectra6(bmp_path, dpal_enabled)
+    convert_for_spectra6(bmp_path, dither_method)
     os.remove(tmp_path)
     EPD_WORKING = False
     return redirect("/")
