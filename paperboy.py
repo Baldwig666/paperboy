@@ -601,7 +601,7 @@ def upload():
     img = ImageOps.exif_transpose(img)
     img.save(bmp_path, "BMP")
     image_scale(bmp_path)
-    make_thumbnail(tmp_path)
+    make_thumbnail(bmp_path)
     convert_for_spectra6(bmp_path, dither_method)
     os.remove(tmp_path)
     EPD_WORKING = False
