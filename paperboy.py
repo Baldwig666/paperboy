@@ -242,6 +242,9 @@ h2 {
   height: 400px;
   margin-bottom: 24px;
   box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+  {% if session.get("unlocked") %}
+    box-shadow: 5px 10px 8px rgba(120,0,0,0.35);
+  {% endif %}
 }
 
 .card-gallery {
@@ -250,6 +253,9 @@ h2 {
   padding: 24px;
   margin-bottom: 24px;
   box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+  {% if session.get("unlocked") %}
+    box-shadow: 5px 10px 8px rgba(120,0,0,0.35);
+  {% endif %}
 }
 
 
