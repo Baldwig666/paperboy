@@ -360,6 +360,43 @@ small {
 </style>
 </head>
 
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const dropZone = document.getElementById("dropZone");
+    const fileInput = document.getElementById("fileInput");
+    const form = document.getElementById("uploadForm");
+
+    if (!dropZone || !fileInput || !form) {
+        console.error("Drag & Drop elements not found");
+        return;
+    }
+
+    dropZone.addEventListener("click", () => fileInput.click());
+
+    dropZone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = "var(--primary)";
+        dropZone.style.background = "#eef2ff";
+    });
+
+    dropZone.addEventListener("dragleave", () => {
+        dropZone.style.borderColor = "var(--border)";
+        dropZone.style.background = "#fafafa";
+    });
+
+    dropZone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = "var(--border)";
+        dropZone.style.background = "#fafafa";
+
+        if (e.dataTransfer.files.length > 0) {
+            fileInput.files = e.dataTransfer.files;
+            form.submit();
+        }
+    });
+});
+</script>
+
 <body>
 <div class="container">
 
@@ -370,35 +407,47 @@ small {
   <div class="card">
     <h2>E-Paper Picture Frame</h2>
 
-    <form action="/upload" method="post" enctype="multipart/form-data">
-      <legend>Upload image</legend>
+<form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
+  <legend>Upload image</legend>
 
-      <input type="file" name="file" required accept=".bmp,.png,.jpg,.jpeg"><br><br>
-
-      <label>
-        <input type="radio" name="palette" value="default">
-        Default palette
-      </label><br>
-
-      <label>
-        <input type="radio" name="palette" value="spectra6" checked>
-        Spectra 6 device palette
-      </label><br>
-
-      <label>
-        <input type="radio" name="palette" value="photo">
-        Spectra 6 photo palette
-      </label><br>
-
-      <label>
-        <input type="radio" name="palette" value="comic">
-        Spectra 6 comic palette
-      </label><br><br>
-
-
-      <button class="btn-primary" type="submit">Upload image</button>
-    </form>
+  <div id="dropZone" style="
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 30px;
+      text-align: center;
+      background: #fafafa;
+      transition: background 0.2s ease, border-color 0.2s ease;
+      margin-bottom: 15px;
+      cursor: pointer;">
+      Drag & Drop image here<br>
+      <small>or click to select a file</small>
+      <input type="file" id="fileInput" name="file" required
+             accept=".bmp,.png,.jpg,.jpeg"
+             style="display:none;">
   </div>
+
+  <label>
+    <input type="radio" name="palette" value="default">
+    Default palette
+  </label><br>
+
+  <label>
+    <input type="radio" name="palette" value="spectra6" checked>
+    Spectra 6 device palette
+  </label><br>
+
+  <label>
+    <input type="radio" name="palette" value="photo">
+    Spectra 6 photo palette
+  </label><br>
+
+  <label>
+    <input type="radio" name="palette" value="comic">
+    Spectra 6 comic palette
+  </label><br><br>
+
+  <button class="btn-primary" type="submit">Upload image</button>
+</form>
 
   </td>
 
